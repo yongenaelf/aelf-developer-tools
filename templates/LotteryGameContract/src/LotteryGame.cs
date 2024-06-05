@@ -24,9 +24,9 @@ namespace AElf.Contracts.LotteryGame
             State.Owner.Value = Context.Sender;
             
             // Initialize the token contract
-            State.TokenContract.Value = Address.FromBase58(TokenContractAddress);
-            // The below code can be used to replace the above line. The above is a showcase of how you can reference to any contracts.
-            // State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            // The below code can be used to replace the above line. The below is a showcase of how you can reference to any contracts.
+            // State.TokenContract.Value = Address.FromBase58(TokenContractAddress);
             State.ConsensusContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             
             return new Empty();
