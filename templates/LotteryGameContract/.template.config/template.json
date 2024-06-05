@@ -4,8 +4,8 @@
   "classifications": [
     "AElf/SmartContract"
   ],
-  "identity": "AElf.Contract",
-  "name": "AElf Contract",
+  "identity": "AElf.Contract.LotteryGame.Template",
+  "name": "AElf Contract LotteryGame Template",
   "shortName": "aelf-lottery",
   "tags": {
     "language": "C#",
