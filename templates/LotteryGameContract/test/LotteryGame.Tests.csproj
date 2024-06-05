@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>AElf.Contracts.HelloWorld</RootNamespace>
+        <RootNamespace>AElf.Contracts.LotteryGame</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -45,7 +45,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../src/HelloWorld.csproj" />
+        <ProjectReference Include="../src/LotteryGame.csproj" />
     </ItemGroup>
-    
+
 </Project>

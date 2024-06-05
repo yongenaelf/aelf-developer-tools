@@ -1,10 +1,11 @@
-﻿using AElf.Cryptography.ECDSA;
+﻿using AElf.Contracts.MultiToken;
+using AElf.Cryptography.ECDSA;
 using AElf.Testing.TestBase;
 
-namespace AElf.Contracts.HelloWorld
+namespace AElf.Contracts.LotteryGame
 {
     // The Module class load the context required for unit testing
-    public class Module : ContractTestModule<HelloWorld>
+    public class Module : ContractTestModule<LotteryGame>
     {
         
     }
@@ -13,18 +14,20 @@ namespace AElf.Contracts.HelloWorld
     public class TestBase : ContractTestBase<Module>
     {
         // The Stub class for unit testing
-        internal readonly HelloWorldContainer.HelloWorldStub HelloWorldStub;
+        internal readonly LotteryGameContainer.LotteryGameStub LotteryGameStub;
+        internal readonly TokenContractContainer.TokenContractStub TokenContractStub;
         // A key pair that can be used to interact with the contract instance
         private ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
 
         public TestBase()
         {
-            HelloWorldStub = GetHelloWorldContractStub(DefaultKeyPair);
+            LotteryGameStub = GetLotteryGameContractStub(DefaultKeyPair);
+            TokenContractStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
         }
 
-        private HelloWorldContainer.HelloWorldStub GetHelloWorldContractStub(ECKeyPair senderKeyPair)
+        private LotteryGameContainer.LotteryGameStub GetLotteryGameContractStub(ECKeyPair senderKeyPair)
         {
-            return GetTester<HelloWorldContainer.HelloWorldStub>(ContractAddress, senderKeyPair);
+            return GetTester<LotteryGameContainer.LotteryGameStub>(ContractAddress, senderKeyPair);
         }
     }
     
