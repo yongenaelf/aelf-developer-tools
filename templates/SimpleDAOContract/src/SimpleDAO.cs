@@ -1,99 +1,92 @@
-using AElf.Types;
+using AElf.Contracts.MultiToken;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.SimpleDAO
 {
-    public class SimpleDAO : SimpleDAOContainer.SimpleDAOBase
+    public partial class SimpleDAO : SimpleDAOContainer.SimpleDAOBase
     {
-        // Initializes the DAO with a default proposal.
-        public override Empty Initialize(Empty input)
+        private const int StartProposalId = 1;
+        
+        // Initializes the DAO with a default proposal. Members are defined by token holders.
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "already initialized");
-            var initialProposal = new Proposal
-            {
-                Id = "0",
-                Title = "Proposal #1",
-                Description = "This is the first proposal of the DAO",
-                Status = "IN PROGRESS",
-                VoteThreshold = 1,
-            };
-            State.Proposals[initialProposal.Id] = initialProposal;
-            State.NextProposalId.Value = 1;
-            State.MemberCount.Value = 0;
             
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            Assert(State.TokenContract.Value != null, "Cannot find token contract!");
+            
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = input.TokenSymbol
+            });
+            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), $"Token {input.TokenSymbol} not found");
+            
+            State.TokenSymbol.Value = input.TokenSymbol;
+            State.NextProposalId.Value = StartProposalId;
             State.Initialized.Value = true;
             
             return new Empty();
         }
 
-        // Allows an address to join the DAO.
-        public override Empty JoinDAO(Address input)
+        // Creates a new proposal in the DAO. Anyone can create proposals, even non-members.
+        public override Empty CreateProposal(CreateProposalInput input)
         {
-            // Based on the address, determine whether the address has joined the DAO. If it has, throw an exception
-            Assert(!State.Members[input], "Member is already in the DAO");
-            // If the address has not joined the DAO, then join and update the state's value to true
-            State.Members[input] = true;
-            // Read the value of MemberCount in the state, increment it by 1, and update it in the state
-            var currentCount = State.MemberCount.Value;
-            State.MemberCount.Value = currentCount + 1;
+            Assert(!string.IsNullOrEmpty(input.Title), "Title should not be empty.");
+            Assert(!string.IsNullOrEmpty(input.Description), "Description should not be empty.");
+            Assert(input.StartTimestamp >= Context.CurrentBlockTime, "Start time should be greater or equal to current block time.");
+            Assert(input.EndTimestamp > Context.CurrentBlockTime, "Expire time should be greater than current block time.");
+            
+            var proposalId = State.NextProposalId.Value.ToString();
+            
+            var newProposal = new Proposal {
+                Id = proposalId, 
+                Title = input.Title, 
+                Description = input.Description, 
+                Proposer = Context.Sender, 
+                StartTimestamp = input.StartTimestamp, 
+                EndTimestamp = input.EndTimestamp,
+                Result = new ProposalResult
+                {
+                    ApproveCounts = 0,
+                    RejectCounts = 0,
+                    AbstainCounts = 0
+                }
+            };
+            State.Proposals[proposalId] = newProposal;
+            
+            State.NextProposalId.Value += 1;
             return new Empty();
         }
 
-        // Creates a new proposal in the DAO.
-        public override Proposal CreateProposal(CreateProposalInput input)
+        // Casts a vote on a proposal. Only members can vote.
+        public override Empty Vote(VoteInput input)
         {
-            Assert(State.Members[input.Creator], "Only DAO members can create proposals");
-            var proposalId = State.NextProposalId.Value.ToString();
-            var newProposal = new Proposal
-            {
-                Id = proposalId,
-                Title = input.Title,
-                Description = input.Description,
-                Status = "IN PROGRESS",
-                VoteThreshold = input.VoteThreshold,
-                YesVotes = { }, // Initialize as empty
-                NoVotes = { }, // Initialize as empty
-            };
-            State.Proposals[proposalId] = newProposal;
-            State.NextProposalId.Value += 1;
-            return newProposal; // Ensure return
+            AssertProposalExists(input.ProposalId);
+            var proposal = GetProposal(input.ProposalId);
+            Assert(proposal.StartTimestamp <= Context.CurrentBlockTime, $"Proposal {proposal.Id} has not started. Voting is not allowed.");
+            Assert(proposal.EndTimestamp > Context.CurrentBlockTime, $"Proposal {proposal.Id} has ended. Voting is not allowed.");
+            var amount = input.Amount;
+            Assert(amount > 0, "Amount must be greater than 0");
+            Assert(State.Voters[proposal.Id][Context.Sender] == false, "You have already voted.");
+            
+            TransferTokensForProposalBallot(proposal.Id, amount);
+
+            UpdateVoteCounts(proposal, Context.Sender, input.Vote, amount);
+            
+            return new Empty();
         }
-
-        // Casts a vote on a proposal.
-        public override Proposal VoteOnProposal(VoteInput input)
+        
+        // Withdraws vote from a proposal. Can only be done after the proposal has ended.
+        public override Empty Withdraw(WithdrawInput input)
         {
-            Assert(State.Members[input.Voter], "Only DAO members can vote");
-            var proposal = State.Proposals[input.ProposalId]; // ?? new proposal
-            Assert(proposal != null, "Proposal not found");
-            Assert(
-                !proposal.YesVotes.Contains(input.Voter) && !proposal.NoVotes.Contains(input.Voter),
-                "Member already voted"
-            );
+            AssertProposalExists(input.ProposalId);
+            var proposal = GetProposal(input.ProposalId);
+            Assert(proposal.EndTimestamp <= Context.CurrentBlockTime, $"Proposal {proposal.Id} has not ended. Withdrawal is not allowed.");
+            
+            TransferTokensForProposalWithdrawal(proposal.Id);
 
-            // Add the vote to the appropriate list
-            if (input.Vote)
-            {
-                proposal.YesVotes.Add(input.Voter);
-            }
-            else
-            {
-                proposal.NoVotes.Add(input.Voter);
-            }
-
-            // Update the proposal in state
-            State.Proposals[input.ProposalId] = proposal;
-
-            // Check if the proposal has reached its vote threshold
-            if (proposal.YesVotes.Count >= proposal.VoteThreshold)
-            {
-                proposal.Status = "PASSED";
-            }
-            else if (proposal.NoVotes.Count >= proposal.VoteThreshold)
-            {
-                proposal.Status = "DENIED";
-            }
-
-            return proposal;
+            return new Empty();
         }
 
         // Returns all proposals in the DAO.
@@ -102,7 +95,7 @@ namespace AElf.Contracts.SimpleDAO
             // Create a new list called ProposalList
             var proposals = new ProposalList();
             // Start iterating through Proposals from index 0 until the value of NextProposalId, read the corresponding proposal, add it to ProposalList, and finally return ProposalList
-            for (var i = 0; i < State.NextProposalId.Value; i++)
+            for (var i = StartProposalId; i < State.NextProposalId.Value; i++)
             {
                 var proposalCount = i.ToString();
                 var proposal = State.Proposals[proposalCount];
@@ -114,22 +107,23 @@ namespace AElf.Contracts.SimpleDAO
         // Get information of a particular proposal.
         public override Proposal GetProposal(StringValue input)
         {
-            var proposal = State.Proposals[input.Value];
-            return proposal;
+            AssertProposalExists(input.Value);
+            
+            return GetProposal(input.Value);
         }
-
-        // Get the number of members in the DAO
-        public override Int32Value GetMemberCount(Empty input)
+        
+        // Check if an address has voted
+        public override BoolValue HasVoted(HasVotedInput input)
         {
-            var memberCount = new Int32Value {Value = State.MemberCount.Value};
-            return memberCount;
+            var id = input.ProposalId;
+            AssertProposalExists(id);
+
+            return new BoolValue { Value = State.Voters[id][input.Address] };
         }
-
-        // Check if a member exists in the DAO
-        public override BoolValue GetMemberExist(Address input)
+        
+        public override StringValue GetTokenSymbol(Empty input)
         {
-            var exist = new BoolValue {Value = State.Members[input]};
-            return exist;
+            return new StringValue { Value = State.TokenSymbol.Value };
         }
     }
 }
