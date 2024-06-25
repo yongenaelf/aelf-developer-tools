@@ -37,7 +37,7 @@ namespace AElf.Contracts.NftSale
         {
             State.TokenContract.Transfer.Send(new TransferInput
             {
-                To = Context.Sender,
+                To = input.To,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = $"Transfer {input.Symbol}."
@@ -45,7 +45,7 @@ namespace AElf.Contracts.NftSale
             
             Context.Fire(new SaleNft
             {
-                To = Context.Sender,
+                To = input.To,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
             });
@@ -55,12 +55,12 @@ namespace AElf.Contracts.NftSale
 
         
         // A method that read the contract's current balance
-        public override Int64Value GetContractBalance(Empty input)
+        public override Int64Value GetContractBalance(GetContractBalanceInput input)
         {
             // Get the balance of the contract
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
-                Owner = Context.Self,
+                Owner = input.Address,
                 Symbol = TokenSymbol
             }).Balance;
             

@@ -29,7 +29,7 @@ service NftSale {
     option (aelf.is_view) = true;
   }
 
-  rpc GetContractBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+  rpc GetContractBalance (GetContractBalanceInput) returns (google.protobuf.Int64Value) {
     option (aelf.is_view) = true;
   }
   
@@ -59,6 +59,10 @@ message SaleNft {
   int64 amount = 4;
   // The memo.
   string memo = 5;
+}
+
+message GetContractBalanceInput{
+  aelf.Address address = 1;
 }
 
 

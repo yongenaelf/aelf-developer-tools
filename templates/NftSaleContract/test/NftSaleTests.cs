@@ -40,9 +40,10 @@ namespace AElf.Contracts.NftSale
         {
             await NftSaleStub.Initialize.SendAsync(new Empty());
             await ApproveSpendingAsync(100_00000000);
-            var initialContractBalance = await GetContractBalanceAsync();
+            await SendTokenTo(ContractAddress);
+            var initialContractBalance = await GetContractBalanceAsync(ContractAddress);
             
-            
+            var initialContractBalance1 = await GetContractBalanceAsync(Accounts[1].Address);
             await NftSaleStub.SaleNft.SendAsync(new SaleNftInput
             {
                 Amount = 1,
@@ -51,9 +52,11 @@ namespace AElf.Contracts.NftSale
                 Memo = "Test get resource"
             });
             
-            var finalContractBalance = await GetContractBalanceAsync();
+            var finalContractBalance = await GetContractBalanceAsync(ContractAddress);
+            var finalContractBalance2 = await GetContractBalanceAsync(Accounts[1].Address);
+            finalContractBalance2.ShouldBe(initialContractBalance1 + 1);
             
-            finalContractBalance.ShouldBe(initialContractBalance + 1);
+            finalContractBalance.ShouldBe(initialContractBalance - 1);
         }
         
         private async Task ApproveSpendingAsync(long amount)
@@ -75,9 +78,20 @@ namespace AElf.Contracts.NftSale
             })).Balance;
         }
 
-        private async Task<long> GetContractBalanceAsync()
+        private async Task<long> GetContractBalanceAsync(Address address)
         {
-            return (await NftSaleStub.GetContractBalance.CallAsync(new Empty())).Value;
+            var input = new GetContractBalanceInput {Address = address};
+            return (await NftSaleStub.GetContractBalance.CallAsync(input)).Value;
+        }
+        
+        private async Task SendTokenTo(Address address)
+        {
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = address,
+                Symbol = "ELF",
+                Amount = 100
+            });
         }
     }
 }
