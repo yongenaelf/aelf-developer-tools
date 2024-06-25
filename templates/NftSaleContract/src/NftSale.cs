@@ -45,7 +45,7 @@ namespace AElf.Contracts.NftSale
             
             Context.Fire(new SaleNft
             {
-                To = input,
+                To = Context.Sender,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
             });
