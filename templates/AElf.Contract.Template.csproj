@@ -12,12 +12,18 @@
         <IncludeContentInPack>true</IncludeContentInPack>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <ContentTargetFolders>content</ContentTargetFolders>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
         <Content Include="HelloWorldContract\**\*" Exclude="HelloWorldContract\**\bin\**;HelloWorldContract\**\obj\**" />
+        <Content Include="LotteryGameContract\**\*" Exclude="LotteryGameContract\**\bin\**;LotteryGameContract\**\obj\**" />
         <Content Include="SimpleDAOContract\**\*" Exclude="SimpleDAOContract\**\bin\**;SimpleDAOContract\**\obj\**" />
         <Compile Remove="**\*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
     <ItemGroup>
