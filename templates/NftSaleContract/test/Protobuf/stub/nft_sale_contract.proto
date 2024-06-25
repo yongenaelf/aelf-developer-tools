@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "Protobuf/reference/acs12.proto";
+// The namespace of this class
+option csharp_namespace = "AElf.Contracts.NftSale";
+
+service NftSale {
+  // The name of the state class the smart contract is going to use to access blockchain state
+  option (aelf.csharp_state) = "AElf.Contracts.NftSale.NftSaleState";
+  option (aelf.base) = "Protobuf/reference/acs12.proto";
+
+  rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
+  }
+
+  rpc SaleNft (SaleNftInput) returns (google.protobuf.Empty) {
+  }
+  
+  rpc TransferOwnership (aelf.Address) returns (google.protobuf.Empty) {
+  }
+
+  rpc GetContractBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetOwner (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+    option (aelf.is_view) = true;
+  }
+}
+
+message SaleNftInput {
+  // The receiver of the token.
+  aelf.Address to = 1;
+  // The token symbol to transfer.
+  string symbol = 2;
+  // The amount to to transfer.
+  int64 amount = 3;
+  // The memo.
+  string memo = 4;
+}
+
+message SaleNft {
+  option (aelf.is_event) = true;
+  // The destination address of the transferred token.
+  aelf.Address to = 2 [(aelf.is_indexed) = true];
+  // The symbol of the transferred token.
+  string symbol = 3 [(aelf.is_indexed) = true];
+  // The amount of the transferred token.
+  int64 amount = 4;
+  // The memo.
+  string memo = 5;
+}
+
+
+// The message containing the play amount limits
+message PlayAmountLimitMessage {
+  int64 minimumAmount = 1;
+  int64 maximumAmount = 2;
+}
