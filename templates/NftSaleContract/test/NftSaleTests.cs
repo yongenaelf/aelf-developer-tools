@@ -36,27 +36,45 @@ namespace AElf.Contracts.NftSale
         }
 
         [Fact]
-        public async Task SaleNft_Success()
+        public async Task TradeNft_Success()
         {
             await NftSaleStub.Initialize.SendAsync(new Empty());
-            await ApproveSpendingAsync(100_00000000);
+            await ApproveSpendingAsync(10000_0000000);
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Spender = Accounts[1].Address,
+                Symbol = "ELF",
+                Amount = 100_00000000
+            });
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Spender = Accounts[0].Address,
+                Symbol = "ELF",
+                Amount = 100_00000000
+            });
+            //await SendTokenTo(Accounts[2].Address);
             await SendTokenTo(ContractAddress);
-            var initialContractBalance = await GetContractBalanceAsync(ContractAddress);
+            //await SendTokenTo(Accounts[0].Address);
+            await SendTokenTo(Accounts[1].Address);
+            var initialContractBalance = await GetContractBalanceAsync(Accounts[0].Address);
             
             var initialContractBalance1 = await GetContractBalanceAsync(Accounts[1].Address);
-            await NftSaleStub.SaleNft.SendAsync(new SaleNftInput
+            var price = new Price
+            {
+                Amount = 3,
+                Symbol = "ELF"
+            };
+            await NftSaleStub.Purchase.SendAsync(new PurchaseInput
             {
                 Amount = 1,
                 Symbol = "ELF",
-                To = Accounts[1].Address,
-                Memo = "Test get resource"
+                Memo = "Test get resource",
+                Price = price
             });
             
-            var finalContractBalance = await GetContractBalanceAsync(ContractAddress);
+            var finalContractBalance = await GetContractBalanceAsync(Accounts[0].Address);
             var finalContractBalance2 = await GetContractBalanceAsync(Accounts[1].Address);
-            finalContractBalance2.ShouldBe(initialContractBalance1 + 1);
-            
-            finalContractBalance.ShouldBe(initialContractBalance - 1);
+            finalContractBalance.ShouldBe(initialContractBalance + 3 -1);
         }
         
         private async Task ApproveSpendingAsync(long amount)
@@ -67,6 +85,85 @@ namespace AElf.Contracts.NftSale
                 Symbol = "ELF",
                 Amount = amount
             });
+        }
+        
+        [Fact]
+        public async Task Deposit_Success()
+        {
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(new Empty());
+            
+            // Approve spending on the lottery contract
+            await ApproveSpendingAsync(100_00000000);
+
+            const long depositAmount = 10_000_000; // 0.1 ELF
+            var depositInput = new Int64Value() { Value = depositAmount };
+
+            var initialContractBalance = await GetContractBalanceAsync(ContractAddress);
+            
+            // Act
+            var result = await NftSaleStub.Deposit.SendAsync(depositInput);
+
+            // Assert
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // Check balance update
+            var finalContractBalance = await GetContractBalanceAsync(ContractAddress);
+            finalContractBalance.ShouldBe(initialContractBalance + depositAmount);
+
+            // Check if the event is emitted
+            var events = result.TransactionResult.Logs;
+            events.ShouldContain(log => log.Name == nameof(DepositEvent));
+        }
+
+        [Fact]
+        public async Task Withdraw_Success()
+        {
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(new Empty());
+            
+            // Approve spending on the lottery contract
+            await ApproveSpendingAsync(100_00000000);
+
+            const long depositAmount = 10_000_000; // 0.1 ELF
+            var depositInput = new Int64Value() { Value = depositAmount };
+            await NftSaleStub.Deposit.SendAsync(depositInput);
+
+            const long withdrawAmount = 5_000_000; // 0.05 ELF
+            var withdrawInput = new Int64Value() { Value = withdrawAmount };
+
+            var initialSenderBalance = await GetTokenBalanceAsync(DefaultAccount.Address);
+            var initialContractBalance = await GetContractBalanceAsync(ContractAddress);
+            
+            // Act
+            var result = await NftSaleStub.Withdraw.SendAsync(withdrawInput);
+
+            // Assert
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // Check balance update
+            var finalSenderBalance = await GetTokenBalanceAsync(DefaultAccount.Address);
+            var finalContractBalance = await GetContractBalanceAsync(ContractAddress);
+
+            finalSenderBalance.ShouldBe(initialSenderBalance + withdrawAmount);
+            finalContractBalance.ShouldBe(initialContractBalance - withdrawAmount);
+
+            // Check if the event is emitted
+            var events = result.TransactionResult.Logs;
+            events.ShouldContain(log => log.Name == nameof(WithdrawEvent));
+        }
+
+        [Fact]
+        public async Task Withdraw_InsufficientBalance_Fail()
+        {
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(new Empty());
+
+            long withdrawAmount = 5_000_000; // 0.05 ELF
+            var withdrawInput = new Int64Value() { Value = withdrawAmount };
+
+            // Act & Assert
+            Should.Throw<Exception>(async () => await NftSaleStub.Withdraw.SendAsync(withdrawInput));
         }
 
         private async Task<long> GetTokenBalanceAsync(Address owner)

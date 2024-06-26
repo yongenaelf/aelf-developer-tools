@@ -33,21 +33,83 @@ namespace AElf.Contracts.NftSale
         }
         
         // transfer nft
-        public override Empty SaleNft(SaleNftInput input)
+        public override Empty Purchase(PurchaseInput input)
         {
+            // transfer nft
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
+            // transfer token
             State.TokenContract.Transfer.Send(new TransferInput
             {
-                To = input.To,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = $"Transfer {input.Symbol}."
+                // From = Context.Self,
+                To = Context.Sender,
+                Symbol = input.Price.Symbol,
+                Amount = input.Price.Amount
             });
             
             Context.Fire(new SaleNft
             {
-                To = input.To,
+                To = Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
+            });
+            
+            return new Empty();
+        }
+        
+        // Withdraws a specified amount of tokens from the contract.
+        // This method can only be called by the owner of the contract.
+        // After the tokens are transferred, a WithdrawEvent is fired to notify any listeners about the withdrawal.
+        public override Empty Withdraw(Int64Value input)
+        {
+            AssertIsOwner();
+            
+            // Transfer the token from the contract to the sender
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                To = Context.Sender,
+                Symbol = TokenSymbol,
+                Amount = input.Value
+            });
+            
+            // Emit an event to notify listeners about the withdrawal
+            Context.Fire(new WithdrawEvent
+            {
+                Amount = input.Value,
+                From = Context.Self,
+                To = State.Owner.Value
+            });
+            
+            return new Empty();
+        }
+        
+        // Deposits a specified amount of tokens into the contract.
+        // This method can only be called by the owner of the contract.
+        // After the tokens are transferred, a DepositEvent is fired to notify any listeners about the deposit.
+        public override Empty Deposit(Int64Value input)
+        {
+            AssertIsOwner();
+            
+            // Transfer the token from the sender to the contract
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = TokenSymbol,
+                Amount = input.Value
+            });
+            
+            // Emit an event to notify listeners about the deposit
+            Context.Fire(new DepositEvent
+            {
+                Amount = input.Value,
+                From = Context.Sender,
+                To = Context.Self
             });
             
             return new Empty();
@@ -69,6 +131,13 @@ namespace AElf.Contracts.NftSale
             {
                 Value = balance
             };
+        }
+        
+        // This method is used to ensure that only the owner of the contract can perform certain actions.
+        // If the context sender is not the owner, an exception is thrown with the message "Unauthorized to perform the action."
+        private void AssertIsOwner()
+        {
+            Assert(Context.Sender == State.Owner.Value, "Unauthorized to perform the action.");
         }
 
         // A method that read the contract's owner

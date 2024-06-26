@@ -16,17 +16,16 @@ service NftSale {
   rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
   }
 
-  rpc SaleNft (SaleNftInput) returns (google.protobuf.Empty) {
+  rpc Purchase (PurchaseInput) returns (google.protobuf.Empty) {
   }
 
   rpc Withdraw (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
   }
 
-  rpc TransferOwnership (aelf.Address) returns (google.protobuf.Empty) {
+  rpc Deposit (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
   }
 
-  rpc GetPlayAmountLimit (google.protobuf.Empty) returns (PlayAmountLimitMessage) {
-    option (aelf.is_view) = true;
+  rpc TransferOwnership (aelf.Address) returns (google.protobuf.Empty) {
   }
 
   rpc GetContractBalance (GetContractBalanceInput) returns (google.protobuf.Int64Value) {
@@ -38,15 +37,20 @@ service NftSale {
   }
 }
 
-message SaleNftInput {
-  // The receiver of the token.
-  aelf.Address to = 1;
+message Price {
+  string symbol = 1; // token type
+  int64 amount = 2; // token price
+}
+
+message PurchaseInput {
   // The token symbol to transfer.
   string symbol = 2;
   // The amount to to transfer.
   int64 amount = 3;
   // The memo.
   string memo = 4;
+  // Transaction information
+  Price price = 5;
 }
 
 message SaleNft {
@@ -65,6 +69,21 @@ message GetContractBalanceInput{
   aelf.Address address = 1;
 }
 
+// An event that will be emitted from contract method call when Withdraw is called.
+message WithdrawEvent {
+  option (aelf.is_event) = true;
+  int64 amount = 1;
+  aelf.Address from = 2;
+  aelf.Address to = 3;
+}
+
+// An event that will be emitted from contract method call when Deposit is called.
+message DepositEvent {
+  option (aelf.is_event) = true;
+  int64 amount = 1;
+  aelf.Address from = 2;
+  aelf.Address to = 3;
+}
 
 // The message containing the play amount limits
 message PlayAmountLimitMessage {
