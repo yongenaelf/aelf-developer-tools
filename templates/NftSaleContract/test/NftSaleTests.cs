@@ -34,6 +34,31 @@ namespace AElf.Contracts.NftSale
             // Act & Assert
             Should.Throw<Exception>(async () => await NftSaleStub.Initialize.SendAsync(new Empty()));
         }
+        
+        [Fact]
+        public async Task InitializeContract_Fails_AlreadyInitialized()
+        {
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(new Empty());
+            var price = new Price
+            {
+                Amount = 4,
+                Symbol = "ELF"
+            };
+
+            await NftSaleStub.SetPrice.SendAsync(new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            });
+            
+            var symbolPriceawait = await NftSaleStub.GetPrice.CallAsync(new GetSymbolPriceInput
+            {
+                Symbol = "ELF",
+            });
+
+            symbolPriceawait.Amount.ShouldBe(4);
+        }
 
         [Fact]
         public async Task TradeNft_Success()
