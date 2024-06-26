@@ -19,6 +19,13 @@ service NftSale {
   rpc Purchase (PurchaseInput) returns (google.protobuf.Empty) {
   }
 
+  rpc SetPrice (NftPrice) returns (google.protobuf.Empty) {
+  }
+
+  rpc GetPrice (GetSymbolPriceInput) returns (Price) {
+    option (aelf.is_view) = true;
+  }
+
   rpc Withdraw (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
   }
 
@@ -40,6 +47,18 @@ service NftSale {
 message Price {
   string symbol = 1; // token type
   int64 amount = 2; // token price
+}
+
+message NftPrice{
+  // // The token symbol price
+  Price price = 1;
+  // The token symbol 
+  string symbol = 2;
+}
+
+message GetSymbolPriceInput {
+  // The token symbol 
+  string symbol = 2;
 }
 
 message PurchaseInput {

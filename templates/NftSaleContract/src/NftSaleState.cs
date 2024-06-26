@@ -10,5 +10,6 @@ namespace AElf.Contracts.NftSale
         public BoolState Initialized { get; set; }
         // A state to store the owner address
         public SingletonState<Address> Owner { get; set; }
+        public MappedState<string, Price> NftPriceMap { get; set; }
     }
 }

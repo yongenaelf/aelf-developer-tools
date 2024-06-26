@@ -62,6 +62,18 @@ namespace AElf.Contracts.NftSale
             return new Empty();
         }
         
+        // 
+        public override Empty SetPrice(NftPrice input)
+        {
+            State.NftPriceMap[input.Symbol] = input.Price;
+            return new Empty();
+        }
+        
+        public override Price GetPrice(GetSymbolPriceInput input)
+        {
+            return State.NftPriceMap[input.Symbol];
+        }
+
         // Withdraws a specified amount of tokens from the contract.
         // This method can only be called by the owner of the contract.
         // After the tokens are transferred, a WithdrawEvent is fired to notify any listeners about the withdrawal.
