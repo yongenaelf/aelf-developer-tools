@@ -6,7 +6,7 @@
   ],
   "identity": "AElf.Contract.NftSale.Template",
   "name": "AElf Contract NftSale Template",
-  "shortName": "aelf-nft",
+  "shortName": "aelf-nft-sale",
   "tags": {
     "language": "C#",
     "type": "project"

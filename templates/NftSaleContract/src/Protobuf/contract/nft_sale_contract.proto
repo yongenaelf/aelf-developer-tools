@@ -13,16 +13,20 @@ service NftSale {
   option (aelf.csharp_state) = "AElf.Contracts.NftSale.NftSaleState";
   option (aelf.base) = "Protobuf/reference/acs12.proto";
 
-  rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
+  rpc Initialize (NftPrice) returns (google.protobuf.Empty) {
   }
 
   rpc Purchase (PurchaseInput) returns (google.protobuf.Empty) {
   }
 
-  rpc SetPrice (NftPrice) returns (google.protobuf.Empty) {
+  rpc SetPriceAndSymbol (NftPrice) returns (google.protobuf.Empty) {
   }
 
   rpc GetPrice (GetSymbolPriceInput) returns (Price) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetSymbol (google.protobuf.Empty) returns (NftSymbol) {
     option (aelf.is_view) = true;
   }
 
@@ -47,6 +51,10 @@ service NftSale {
 message Price {
   string symbol = 1; // token type
   int64 amount = 2; // token price
+}
+
+message NftSymbol {
+  string symbol = 1;
 }
 
 message NftPrice{

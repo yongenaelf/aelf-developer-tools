@@ -8,13 +8,10 @@ namespace AElf.Contracts.NftSale
     // Contract class must inherit the base class generated from the proto file
     public class NftSale : NftSaleContainer.NftSaleBase
     {
-        private const string TokenContractAddress = "ASh2Wt7nSEmYqnGxPPzp4pnVDU4uhj1XW9Se5VeZcX2UDdyjx"; // tDVW token contract address
         private const string TokenSymbol = "ELF";
-        private const long MinimumPlayAmount = 1_000_000; // 0.01 ELF
-        private const long MaximumPlayAmount = 1_000_000_000; // 10 ELF
         
         // Initializes the contract
-        public override Empty Initialize(Empty input)
+        public override Empty Initialize(NftPrice input)
         {
             // Check if the contract is already initialized
             Assert(State.Initialized.Value == false, "Already initialized.");
@@ -22,11 +19,12 @@ namespace AElf.Contracts.NftSale
             State.Initialized.Value = true;
             // Set the owner address
             State.Owner.Value = Context.Sender;
+            State.NftPrice.Value = input.Price;
+            State.NftSymbol.Value = input.Symbol;
             
             // Initialize the token contract
             State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             // The below code can be used to replace the above line. The below is a showcase of how you can reference to any contracts.
-            // State.TokenContract.Value = Address.FromBase58(TokenContractAddress);
             State.ConsensusContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             
             return new Empty();
@@ -35,21 +33,22 @@ namespace AElf.Contracts.NftSale
         // transfer nft
         public override Empty Purchase(PurchaseInput input)
         {
+            var price = State.NftPrice.Value;
+            var symbol = State.NftSymbol.Value;
             // transfer nft
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = input.Symbol,
+                Symbol = symbol,
                 Amount = input.Amount
             });
             // transfer token
             State.TokenContract.Transfer.Send(new TransferInput
             {
-                // From = Context.Self,
                 To = Context.Sender,
-                Symbol = input.Price.Symbol,
-                Amount = input.Price.Amount
+                Symbol = price.Symbol,
+                Amount = price.Amount
             });
             
             Context.Fire(new SaleNft
@@ -63,15 +62,25 @@ namespace AElf.Contracts.NftSale
         }
         
         // 
-        public override Empty SetPrice(NftPrice input)
+        public override Empty SetPriceAndSymbol(NftPrice input)
         {
-            State.NftPriceMap[input.Symbol] = input.Price;
+            AssertIsOwner();
+            State.NftPrice.Value = input.Price;
+            State.NftSymbol.Value = input.Symbol;
             return new Empty();
         }
         
         public override Price GetPrice(GetSymbolPriceInput input)
         {
-            return State.NftPriceMap[input.Symbol];
+            return State.NftPrice.Value;
+        }
+        
+        public override NftSymbol GetSymbol(Empty input)
+        {
+            return new NftSymbol
+            {
+                Symbol = State.NftSymbol.Value,
+            };
         }
 
         // Withdraws a specified amount of tokens from the contract.

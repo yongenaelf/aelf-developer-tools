@@ -15,8 +15,18 @@ namespace AElf.Contracts.NftSale
         [Fact]
         public async Task InitializeContract_Success()
         {
+            var price = new Price
+            {
+                Amount = 4,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
             // Act
-            var result = await NftSaleStub.Initialize.SendAsync(new Empty());
+            var result = await NftSaleStub.Initialize.SendAsync(nftPrice);
             
             // Assert
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -28,42 +38,74 @@ namespace AElf.Contracts.NftSale
         [Fact]
         public async Task InitializeContract_Fail_AlreadyInitialized()
         {
-            // Arrange
-            await NftSaleStub.Initialize.SendAsync(new Empty());
-
-            // Act & Assert
-            Should.Throw<Exception>(async () => await NftSaleStub.Initialize.SendAsync(new Empty()));
-        }
-        
-        [Fact]
-        public async Task InitializeContract_Fails_AlreadyInitialized()
-        {
-            // Arrange
-            await NftSaleStub.Initialize.SendAsync(new Empty());
             var price = new Price
             {
                 Amount = 4,
                 Symbol = "ELF"
             };
-
-            await NftSaleStub.SetPrice.SendAsync(new NftPrice
+            var nftPrice = new NftPrice
             {
                 Symbol = "ELF",
                 Price = price
+            };
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
+
+            // Act & Assert
+            Should.Throw<Exception>(async () => await NftSaleStub.Initialize.SendAsync(nftPrice));
+        }
+        
+        [Fact]
+        public async Task SetPrice_and_GetPrice()
+        {
+            var price = new Price
+            {
+                Amount = 2,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
+            // Arrange
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
+            var priceNew = new Price
+            {
+                Amount = 4,
+                Symbol = "ELF"
+            };
+
+            await NftSaleStub.SetPriceAndSymbol.SendAsync(new NftPrice
+            {
+                Symbol = "ELF",
+                Price = priceNew
             });
             
-            var symbolPriceawait = await NftSaleStub.GetPrice.CallAsync(new GetSymbolPriceInput
+            var symbolPrice = await NftSaleStub.GetPrice.CallAsync(new GetSymbolPriceInput
             {
                 Symbol = "ELF",
             });
 
-            symbolPriceawait.Amount.ShouldBe(4);
+            symbolPrice.Amount.ShouldBe(4);
+            var symbol = await NftSaleStub.GetSymbol.CallAsync(new Empty());
+            symbol.Symbol.ShouldBe("ELF");
         }
 
         [Fact]
-        public async Task TradeNft_Success()
+        public async Task Purchase_Success()
         {
-            await NftSaleStub.Initialize.SendAsync(new Empty());
+            var price = new Price
+            {
+                Amount = 2,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
             await ApproveSpendingAsync(10000_0000000);
             await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
@@ -84,7 +126,7 @@ namespace AElf.Contracts.NftSale
             var initialContractBalance = await GetContractBalanceAsync(Accounts[0].Address);
             
             var initialContractBalance1 = await GetContractBalanceAsync(Accounts[1].Address);
-            var price = new Price
+            var priceNew = new Price
             {
                 Amount = 3,
                 Symbol = "ELF"
@@ -94,12 +136,12 @@ namespace AElf.Contracts.NftSale
                 Amount = 1,
                 Symbol = "ELF",
                 Memo = "Test get resource",
-                Price = price
+                Price = priceNew
             });
             
             var finalContractBalance = await GetContractBalanceAsync(Accounts[0].Address);
             var finalContractBalance2 = await GetContractBalanceAsync(Accounts[1].Address);
-            finalContractBalance.ShouldBe(initialContractBalance + 3 -1);
+            finalContractBalance.ShouldBe(initialContractBalance + 1);
         }
         
         private async Task ApproveSpendingAsync(long amount)
@@ -115,8 +157,18 @@ namespace AElf.Contracts.NftSale
         [Fact]
         public async Task Deposit_Success()
         {
+            var price = new Price
+            {
+                Amount = 2,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
             // Arrange
-            await NftSaleStub.Initialize.SendAsync(new Empty());
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
             
             // Approve spending on the lottery contract
             await ApproveSpendingAsync(100_00000000);
@@ -144,8 +196,18 @@ namespace AElf.Contracts.NftSale
         [Fact]
         public async Task Withdraw_Success()
         {
+            var price = new Price
+            {
+                Amount = 2,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
             // Arrange
-            await NftSaleStub.Initialize.SendAsync(new Empty());
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
             
             // Approve spending on the lottery contract
             await ApproveSpendingAsync(100_00000000);
@@ -181,8 +243,18 @@ namespace AElf.Contracts.NftSale
         [Fact]
         public async Task Withdraw_InsufficientBalance_Fail()
         {
+            var price = new Price
+            {
+                Amount = 2,
+                Symbol = "ELF"
+            };
+            var nftPrice = new NftPrice
+            {
+                Symbol = "ELF",
+                Price = price
+            };
             // Arrange
-            await NftSaleStub.Initialize.SendAsync(new Empty());
+            await NftSaleStub.Initialize.SendAsync(nftPrice);
 
             long withdrawAmount = 5_000_000; // 0.05 ELF
             var withdrawInput = new Int64Value() { Value = withdrawAmount };
