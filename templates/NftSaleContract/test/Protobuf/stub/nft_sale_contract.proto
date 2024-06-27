@@ -111,9 +111,3 @@ message DepositEvent {
   aelf.Address from = 2;
   aelf.Address to = 3;
 }
-
-// The message containing the play amount limits
-message PlayAmountLimitMessage {
-  int64 minimumAmount = 1;
-  int64 maximumAmount = 2;
-}
