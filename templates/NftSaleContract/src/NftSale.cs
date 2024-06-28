@@ -37,7 +37,7 @@ namespace AElf.Contracts.NftSale
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = price.Symbol,
-                Amount = price.Amount
+                Amount = price.Amount * input.Amount
             });
             // transfer nft
             State.TokenContract.Transfer.Send(new TransferInput
@@ -91,7 +91,7 @@ namespace AElf.Contracts.NftSale
             {
                 Amount = input.Value,
                 From = Context.Self,
-                To = State.Owner.Value
+                To = Context.Sender
             });
             
             return new Empty();
@@ -100,7 +100,7 @@ namespace AElf.Contracts.NftSale
         // Deposits a specified amount of tokens into the contract.
         // This method can only be called by the owner of the contract.
         // After the tokens are transferred, a DepositEvent is fired to notify any listeners about the deposit.
-        public override Empty Deposit(Int64Value input)
+        public override Empty Deposit(DepositeInput input)
         {
             AssertIsOwner();
             
@@ -109,14 +109,14 @@ namespace AElf.Contracts.NftSale
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = State.NftPrice.Value.Symbol,
-                Amount = input.Value
+                Symbol = input.Symbol,
+                Amount = input.Amount
             });
             
             // Emit an event to notify listeners about the deposit
             Context.Fire(new DepositEvent
             {
-                Amount = input.Value,
+                Amount = input.Amount,
                 From = Context.Sender,
                 To = Context.Self
             });

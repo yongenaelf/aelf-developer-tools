@@ -33,7 +33,7 @@ service NftSale {
   rpc Withdraw (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
   }
 
-  rpc Deposit (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+  rpc Deposit (DepositeInput) returns (google.protobuf.Empty) {
   }
 
   rpc TransferOwnership (aelf.Address) returns (google.protobuf.Empty) {
@@ -46,6 +46,11 @@ service NftSale {
   rpc GetOwner (google.protobuf.Empty) returns (google.protobuf.StringValue) {
     option (aelf.is_view) = true;
   }
+}
+
+message DepositeInput{
+  string symbol = 1; // nft
+  int64 amount = 2; // token amount
 }
 
 message Price {
@@ -108,6 +113,7 @@ message WithdrawEvent {
 message DepositEvent {
   option (aelf.is_event) = true;
   int64 amount = 1;
-  aelf.Address from = 2;
-  aelf.Address to = 3;
+  string symbol = 2;
+  aelf.Address from = 3;
+  aelf.Address to = 4;
 }
