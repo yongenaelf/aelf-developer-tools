@@ -35,20 +35,20 @@ namespace AElf.Contracts.NftSale
         {
             var price = State.NftPrice.Value;
             var symbol = State.NftSymbol.Value;
-            // transfer nft
+            // transfer token
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = symbol,
-                Amount = input.Amount
+                Symbol = price.Symbol,
+                Amount = price.Amount
             });
-            // transfer token
+            // transfer nft
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = Context.Sender,
-                Symbol = price.Symbol,
-                Amount = price.Amount
+                Symbol = symbol,
+                Amount = input.Amount
             });
             
             Context.Fire(new SaleNft

@@ -141,7 +141,7 @@ namespace AElf.Contracts.NftSale
             
             var finalContractBalance = await GetContractBalanceAsync(Accounts[0].Address);
             var finalContractBalance2 = await GetContractBalanceAsync(Accounts[1].Address);
-            finalContractBalance.ShouldBe(initialContractBalance + 1);
+            finalContractBalance.ShouldBe(initialContractBalance - 1);
         }
         
         private async Task ApproveSpendingAsync(long amount)
