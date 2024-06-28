@@ -9,7 +9,7 @@
     <Import Project="_contract/_Contract.Tools.targets"/>
     <Import Project="_protobuf/Google.Protobuf.Tools.targets"/>
     <Import Project="_patch/Patch.Tools.targets"/>
-
+    <Import Project="_typescript/Typescript.Tools.targets"/>
     <ItemGroup>
         <ProtoProjectCompilePath Include="$(ProjectDir)Protobuf/base;$(ProjectDir)Protobuf/message;$(ProjectDir)Protobuf/contract;$(ProjectDir)Protobuf/reference;" Condition="!Exists('$(ProjectDir)Protobuf/stub')" />
         <ProtoProjectCompilePath Include="$(ProjectDir)Protobuf/base;$(ProjectDir)Protobuf/message;$(ProjectDir)Protobuf/stub;" Condition="Exists('$(ProjectDir)Protobuf/stub')" />

@@ -38,6 +38,17 @@
         <None Pack="true" PackagePath="build\" Include="build\**\*.xml; build\**\*.props; build\**\*.targets;" />
         <None PackagePath="tools" Include="tools\**\*.*" Pack="true" Visible="false" />
         <None Pack="true" PackagePath="build\native\include" Include="build\native\include\**\*.proto" Visible="false" />
+        <None Update="build\_typescript\Typescript.Tools.props">
+          <Pack>true</Pack>
+          <PackagePath>build/</PackagePath>
+        </None>
+        <None Update="build\_typescript\Typescript.Tools.targets">
+          <Pack>true</Pack>
+          <PackagePath>build/</PackagePath>
+        </None>
+        <None Include="build\_typescript\node_modules.zip" Pack="true" PackagePath="build\_typescript\node_modules.zip">
+            <NoDefaultExcludes>true</NoDefaultExcludes>
+        </None>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net46'">

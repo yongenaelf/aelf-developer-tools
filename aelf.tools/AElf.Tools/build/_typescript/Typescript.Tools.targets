@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    </PropertyGroup>
+    
+    <Target Name="GenerateTypescript" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
+        <!-- For non-Windows operating systems -->
+        <Exec Condition=" '$(Protobuf_ToolsOs)' != 'windows' AND !Exists('$(MSBuildThisFileDirectory)node_modules')"
+              Command='unzip -o "$(MSBuildThisFileDirectory)node_modules.zip" -d "$(MSBuildThisFileDirectory)"'
+              ConsoleToMSBuild="false" >
+        </Exec>
+
+        <Exec Condition=" '$(Protobuf_ToolsOs)' != 'windows' AND !Exists('$(ProjectDir)../node_modules')"
+              Command='unzip -o "$(MSBuildThisFileDirectory)node_modules.zip" -d "$(ProjectDir).."'
+              ConsoleToMSBuild="false" >
+        </Exec>
+
+        <!-- For Windows operating systems -->
+        <Exec Condition=" '$(Protobuf_ToolsOs)' == 'windows' AND !Exists('$(MSBuildThisFileDirectory)node_modules')"
+              Command='PowerShell -Command "Expand-Archive -Path \"$(MSBuildThisFileDirectory)node_modules.zip\" -DestinationPath \"$(MSBuildThisFileDirectory)\" -Force"'
+              ConsoleToMSBuild="false" >
+        </Exec>
+
+        <Exec Condition=" '$(Protobuf_ToolsOs)' == 'windows' AND !Exists('$(ProjectDir)../node_modules')"
+              Command='PowerShell -Command "Expand-Archive -Path \"$(MSBuildThisFileDirectory)node_modules.zip\" -DestinationPath \"$(ProjectDir)..\" -Force"'
+              ConsoleToMSBuild="false" >
+        </Exec>
+
+        <Exec Condition=" '$(Protobuf_ToolsOs)' != 'windows' "
+              Command=' "$(Protobuf_PackagedToolsPath)/$(Protobuf_ToolsOs)_$(Protobuf_ToolsCpu)/AElf.Typescript.Generator" "$( [System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)../../build/_typescript) )" "--proto_path=$(ProjectDir)Protobuf/contract" "$(ProjectDir)Protobuf/contract" "$(Protobuf_StandardImportsPath)/aelf" '
+              ConsoleToMSBuild="false" >
+            <Output TaskParameter="ConsoleOutput" ItemName="TypescriptGeneratorOutput"/>
+        </Exec>
+        <Exec Condition=" '$(Protobuf_ToolsOs)' == 'windows' "
+              Command=' "$(Protobuf_PackagedToolsPath)/$(Protobuf_ToolsOs)_$(Protobuf_ToolsCpu)/AElf.Typescript.Generator.exe" "$( [System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)../../build/_typescript) )" "--proto_path=$(ProjectDir)Protobuf/contract" "$(ProjectDir)Protobuf/contract" "$(Protobuf_StandardImportsPath)/aelf" '
+              ConsoleToMSBuild="false" >
+            <Output TaskParameter="ConsoleOutput" ItemName="TypescriptGeneratorOutput"/>
+        </Exec>
+        <Message Text="$(TypescriptGeneratorOutput)"/>
+    </Target>
+    
+</Project>
