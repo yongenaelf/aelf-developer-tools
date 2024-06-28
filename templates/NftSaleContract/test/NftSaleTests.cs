@@ -82,10 +82,7 @@ namespace AElf.Contracts.NftSale
                 Price = priceNew
             });
             
-            var symbolPrice = await NftSaleStub.GetPrice.CallAsync(new GetSymbolPriceInput
-            {
-                Symbol = "ELF",
-            });
+            var symbolPrice = await NftSaleStub.GetPrice.CallAsync(new Empty{});
 
             symbolPrice.Amount.ShouldBe(4);
         }

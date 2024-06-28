@@ -65,7 +65,7 @@ namespace AElf.Contracts.NftSale
             return new Empty();
         }
         
-        public override Price GetPrice(GetSymbolPriceInput input)
+        public override Price GetPrice(Empty input)
         {
             return State.NftPrice.Value;
         }

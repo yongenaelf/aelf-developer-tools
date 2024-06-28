@@ -22,7 +22,7 @@ service NftSale {
   rpc SetPriceAndSymbol (NftPrice) returns (google.protobuf.Empty) {
   }
 
-  rpc GetPrice (GetSymbolPriceInput) returns (Price) {
+  rpc GetPrice (google.protobuf.Empty) returns (Price) {
     option (aelf.is_view) = true;
   }
 
@@ -65,11 +65,6 @@ message NftSymbol {
 message NftPrice{
   // // The token symbol price
   Price price = 1;
-  // The token symbol 
-  string symbol = 2;
-}
-
-message GetSymbolPriceInput {
   // The token symbol 
   string symbol = 2;
 }
