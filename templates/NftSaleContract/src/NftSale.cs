@@ -121,7 +121,7 @@ namespace AElf.Contracts.NftSale
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = TokenSymbol,
+                Symbol = State.NftSymbol.Value,
                 Amount = input.Value
             });
             
