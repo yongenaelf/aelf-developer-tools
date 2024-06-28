@@ -172,7 +172,12 @@ namespace AElf.Contracts.NftSale
             await ApproveSpendingAsync(100_00000000);
 
             const long depositAmount = 10_000_000; // 0.1 ELF
-            var depositInput = new Int64Value() { Value = depositAmount };
+            // var depositInput = new Int64Value() { Value = depositAmount };
+            var depositInput = new DepositeInput
+            {
+                Symbol = "ELF",
+                Amount = 10_000_000
+            };
 
             var initialContractBalance = await GetContractBalanceAsync(ContractAddress);
             
@@ -210,8 +215,11 @@ namespace AElf.Contracts.NftSale
             // Approve spending on the lottery contract
             await ApproveSpendingAsync(100_00000000);
 
-            const long depositAmount = 10_000_000; // 0.1 ELF
-            var depositInput = new Int64Value() { Value = depositAmount };
+            var depositInput = new DepositeInput
+            {
+                Symbol = "ELF",
+                Amount = 10_000_000
+            };
             await NftSaleStub.Deposit.SendAsync(depositInput);
 
             const long withdrawAmount = 5_000_000; // 0.05 ELF
