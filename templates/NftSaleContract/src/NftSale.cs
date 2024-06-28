@@ -8,8 +8,6 @@ namespace AElf.Contracts.NftSale
     // Contract class must inherit the base class generated from the proto file
     public class NftSale : NftSaleContainer.NftSaleBase
     {
-        private const string TokenSymbol = "ELF";
-        
         // Initializes the contract
         public override Empty Initialize(NftPrice input)
         {
@@ -20,7 +18,6 @@ namespace AElf.Contracts.NftSale
             // Set the owner address
             State.Owner.Value = Context.Sender;
             State.NftPrice.Value = input.Price;
-            State.NftSymbol.Value = input.Symbol;
             
             // Initialize the token contract
             State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
@@ -34,7 +31,6 @@ namespace AElf.Contracts.NftSale
         public override Empty Purchase(PurchaseInput input)
         {
             var price = State.NftPrice.Value;
-            var symbol = State.NftSymbol.Value;
             // transfer token
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
@@ -47,7 +43,7 @@ namespace AElf.Contracts.NftSale
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = Context.Sender,
-                Symbol = symbol,
+                Symbol = input.Symbol,
                 Amount = input.Amount
             });
             
@@ -66,7 +62,6 @@ namespace AElf.Contracts.NftSale
         {
             AssertIsOwner();
             State.NftPrice.Value = input.Price;
-            State.NftSymbol.Value = input.Symbol;
             return new Empty();
         }
         
@@ -75,13 +70,6 @@ namespace AElf.Contracts.NftSale
             return State.NftPrice.Value;
         }
         
-        public override NftSymbol GetSymbol(Empty input)
-        {
-            return new NftSymbol
-            {
-                Symbol = State.NftSymbol.Value,
-            };
-        }
 
         // Withdraws a specified amount of tokens from the contract.
         // This method can only be called by the owner of the contract.
@@ -94,7 +82,7 @@ namespace AElf.Contracts.NftSale
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = Context.Sender,
-                Symbol = TokenSymbol,
+                Symbol = State.NftPrice.Value.Symbol,
                 Amount = input.Value
             });
             
@@ -121,7 +109,7 @@ namespace AElf.Contracts.NftSale
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = State.NftSymbol.Value,
+                Symbol = State.NftPrice.Value.Symbol,
                 Amount = input.Value
             });
             
@@ -144,7 +132,7 @@ namespace AElf.Contracts.NftSale
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = input.Address,
-                Symbol = TokenSymbol
+                Symbol = State.NftPrice.Value.Symbol
             }).Balance;
             
             // Wrap the value in the return type

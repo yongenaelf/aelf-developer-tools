@@ -11,6 +11,5 @@ namespace AElf.Contracts.NftSale
         // A state to store the owner address
         public SingletonState<Address> Owner { get; set; }
         public SingletonState<Price> NftPrice { get; set; }
-        public SingletonState<string> NftSymbol { get; set; }
     }
 }
