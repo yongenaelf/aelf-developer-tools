@@ -19,6 +19,7 @@
         <Content Include="HelloWorldContract\**\*" Exclude="HelloWorldContract\**\bin\**;HelloWorldContract\**\obj\**" />
         <Content Include="LotteryGameContract\**\*" Exclude="LotteryGameContract\**\bin\**;LotteryGameContract\**\obj\**" />
         <Content Include="SimpleDAOContract\**\*" Exclude="SimpleDAOContract\**\bin\**;SimpleDAOContract\**\obj\**" />
+        <Content Include="NftSaleContract\**\*" Exclude="NftSaleContract\**\bin\**;NftSaleContract\**\obj\**" />
         <Compile Remove="**\*" />
     </ItemGroup>
 
