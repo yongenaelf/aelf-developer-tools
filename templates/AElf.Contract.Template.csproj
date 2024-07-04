@@ -18,6 +18,7 @@
     <ItemGroup>
         <Content Include="HelloWorldContract\**\*" Exclude="HelloWorldContract\**\bin\**;HelloWorldContract\**\obj\**" />
         <Content Include="LotteryGameContract\**\*" Exclude="LotteryGameContract\**\bin\**;LotteryGameContract\**\obj\**" />
+        <Content Include="SimpleDAOContract\**\*" Exclude="SimpleDAOContract\**\bin\**;SimpleDAOContract\**\obj\**" />
         <Compile Remove="**\*" />
     </ItemGroup>
 
