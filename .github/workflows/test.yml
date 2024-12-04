@@ -42,5 +42,8 @@ jobs:
           name: ${{matrix.name}}
           path: ${{github.workspace}}/out
 
-      - name: Publish to test nuget
-        run: dotnet nuget push ${{github.workspace}}/out/*.nupkg --api-key ${{secrets.NUGET_TEST_API_KEY}} --source https://apiint.nugettest.org/v3/index.json --skip-duplicate
+      # - name: Publish to test nuget
+      #   run: dotnet nuget push ${{github.workspace}}/out/*.nupkg --api-key ${{secrets.NUGET_TEST_API_KEY}} --source https://apiint.nugettest.org/v3/index.json --skip-duplicate
+
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push ${{github.workspace}}/out/*.nupkg --api-key ${{secrets.GITHUB_TOKEN}} --source "github"
