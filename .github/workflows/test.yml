@@ -1,0 +1,46 @@
+name: Test workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: AElf.ContractDetector
+            path: "aelf.contractdetector/AElf.ContractDetector"
+          - name: AElf.Tools
+            path: "aelf.tools/AElf.Tools"
+          - name: AElf.Testing.TestBase
+            path: "aelf.testing.testbase/AElf.Testing.TestBase"
+          - name: AElf.Contract.Templates
+            path: "templates"
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch history
+        run: git fetch --prune --unshallow
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        working-directory: ./${{matrix.path}}
+        run: dotnet build
+
+      - name: Pack
+        working-directory: ./${{matrix.path}}
+        run: dotnet pack -c Release -o ${{github.workspace}}/out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.name}}
+          path: ${{github.workspace}}/out
+
+      - name: Publish to test nuget
+        run: dotnet nuget push ${{github.workspace}}/out/*.nupkg --api-key ${{secrets.NUGET_TEST_API_KEY}} --source https://apiint.nugettest.org/v3/index.json --skip-duplicate
